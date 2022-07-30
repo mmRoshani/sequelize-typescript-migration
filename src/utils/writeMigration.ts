@@ -2,8 +2,13 @@ import beautify from 'js-beautify'
 import * as fs from 'fs'
 import * as path from 'path'
 import removeCurrentRevisionMigrations from './removeCurrentRevisionMigrations'
+import { MigrationState } from './constants'
 
-export default async function writeMigration(currentState, migration, options) {
+export default async function writeMigration(
+  currentState: MigrationState,
+  migration,
+  options
+) {
   await removeCurrentRevisionMigrations(
     currentState.revision,
     options.outDir,
@@ -153,8 +158,7 @@ module.exports = {
 };
 `
 
-  const revisionNumber = currentState.revision.toString().padStart(8, '0')
-
+  const revisionNumber = currentState.revision?.toString().padStart(8, '0')
   const filename = path.join(
     options.outDir,
     `${

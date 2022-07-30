@@ -1,91 +1,96 @@
 import { Sequelize } from 'sequelize-typescript'
-import { ModelCtor, Model, ModelAttributeColumnOptions } from 'sequelize/types'
+import { ModelCtor, Model, ModelAttributeColumnOptions } from 'sequelize'
+
 import reverseSequelizeColType from './reverseSequelizeColType'
-import reverseSequelizeDefValueType from './reverseSequelizeDefValueType'
+import { reverseSequelizeDefValueType } from './reverseSequelizeDefValueType'
 import parseIndex from './parseIndex'
+import {
+  Json,
+  CONSTRAINTS,
+  Tables,
+  TableSchema,
+  ColumnSchema
+} from './constants'
 
 export default function reverseModels(
   sequelize: Sequelize,
   models: {
-    [key: string]: ModelCtor<Model>
+    [modelName: string]: ModelCtor<Model>
   }
-) {
-  const tables = {}
+): Tables {
+  const tables: Tables = {}
+
   for (const [, model] of Object.entries(models)) {
     const attributes: {
       [key: string]: ModelAttributeColumnOptions
     } = model.rawAttributes
-
-    const resultAttributes = {}
+    const tableSchema: TableSchema = {}
 
     for (const [column, attribute] of Object.entries(attributes)) {
-      let rowAttribute: { [x: string]: unknown } = {}
+      let columnSchema: ColumnSchema = {}
 
       if (attribute.defaultValue) {
-        const _val = reverseSequelizeDefValueType(attribute.defaultValue)
-        if (_val.notSupported) {
+        const valueType = reverseSequelizeDefValueType(attribute.defaultValue)
+
+        if (valueType.notSupported) {
           console.log(
-            `[Not supported] Skip defaultValue column of attribute ${model}:${column}`
+            `[Not supported] Skip defaultValue column of attribute ${model}: ${column}`
           )
+
           continue
         }
-        rowAttribute.defaultValue = _val
+
+        columnSchema.defaultValue = valueType
       }
 
       if (attribute.type === undefined) {
         console.log(
-          `[Not supported] Skip column with undefined type ${model}:${column}`
+          `[Not supported] Skip column with undefined type ${model}: ${column}`
         )
+
         continue
       }
 
       const seqType: string = reverseSequelizeColType(sequelize, attribute.type)
+
       if (seqType === 'Sequelize.VIRTUAL') {
         console.log(
           `[SKIP] Skip Sequelize.VIRTUAL column "${column}"", defined in model "${model}"`
         )
+
         continue
       }
 
-      rowAttribute = {
+      columnSchema = {
+        // ...columnSchema,
         seqType
       }
-      ;[
-        'allowNull',
-        'unique',
-        'primaryKey',
-        'autoIncrement',
-        'autoIncrementIdentity',
-        'comment',
-        'references',
-        'onUpdate',
-        'onDelete'
-        // "validate",
-      ].forEach(key => {
-        if (attribute[key] !== undefined) rowAttribute[key] = attribute[key]
+      CONSTRAINTS.forEach(key => {
+        // @ts-expect-error I do not know why this shows an error
+        if (attribute[key] !== undefined) columnSchema[key] = attribute[key]
       })
-
-      resultAttributes[column] = rowAttribute
+      tableSchema[column] = columnSchema
     } // attributes in model
 
-    tables[model.tableName] = {
-      tableName: model.tableName,
-      schema: resultAttributes
-    }
+    const indexOut: Json = {}
 
-    const indexOut: { [x: string]: unknown } = {}
     if (
       model.options &&
       model.options.indexes &&
       model.options.indexes.length > 0
     )
-      for (const _i in model.options.indexes) {
-        const index = parseIndex(model.options.indexes[_i])
+      for (const i in model.options.indexes) {
+        const index = parseIndex(model.options.indexes[i])
+
         indexOut[`${index.hash}`] = index
         delete index.hash
       }
 
-    tables[model.tableName].indexes = indexOut
+    tables[model.tableName] = {
+      tableName: model.tableName,
+      schema: tableSchema,
+      indexes: indexOut
+    }
   } // model in models
 
   return tables

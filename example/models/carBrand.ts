@@ -1,8 +1,7 @@
-/* eslint-disable no-use-before-define */
 import { Table, Model, Column, Default, DataType } from 'sequelize-typescript'
 
 @Table
-export class CarBrand extends Model<CarBrand> {
+export class CarBrand extends Model {
   @Column
   name!: string
 

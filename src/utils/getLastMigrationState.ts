@@ -1,13 +1,15 @@
 import { Sequelize } from 'sequelize-typescript'
-import { QueryTypes } from 'sequelize/types'
+import { QueryTypes } from 'sequelize'
 
 import {
   SequelizeMigrations,
   SequelizeMigrationsMeta,
   MigrationState
-} from '../constants'
+} from './constants'
 
-export default async function getLastMigrationState(sequelize: Sequelize) {
+export default async function getLastMigrationState(
+  sequelize: Sequelize
+): Promise<MigrationState | undefined> {
   const [lastExecutedMigration] = await sequelize.query<SequelizeMigrations>(
     'SELECT name FROM "SequelizeMeta" ORDER BY name desc limit 1',
     { type: QueryTypes.SELECT }

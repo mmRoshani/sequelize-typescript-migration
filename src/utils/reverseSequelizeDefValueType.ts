@@ -1,7 +1,9 @@
-export default function reverseSequelizeDefValueType(
-  defaultValue,
+import { ValueType } from './constants'
+
+const reverseSequelizeDefValueType = (
+  defaultValue: any,
   prefix = 'Sequelize.'
-) {
+): ValueType => {
   if (typeof defaultValue.fn !== 'undefined')
     return {
       internal: true,
@@ -31,3 +33,5 @@ export default function reverseSequelizeDefValueType(
 
   return { value: defaultValue }
 }
+
+export { reverseSequelizeDefValueType }

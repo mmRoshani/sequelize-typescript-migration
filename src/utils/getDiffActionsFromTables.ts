@@ -1,6 +1,6 @@
 import { diff } from 'deep-diff'
 
-import { Json } from '../constants'
+import { Table, Tables } from './constants'
 import sortActions from './sortActions'
 
 export interface IAction {
@@ -22,15 +22,13 @@ export interface IAction {
 }
 
 export default function getDiffActionsFromTables(
-  previousStateTables: Json,
-  currentStateTables: Json
+  previousStateTables: Tables,
+  currentStateTables: Tables
 ) {
   const actions: IAction[] = []
   const differences = diff(previousStateTables, currentStateTables)
 
   if (!differences) return actions
-
-  console.log(differences)
 
   differences.forEach(df => {
     if (!df.path) throw new Error('Missing path')
@@ -39,27 +37,38 @@ export default function getDiffActionsFromTables(
       // add new
       case 'N':
         {
+          const rhs = df.rhs as unknown as Table
+          console.log(
+            '🚀 ~ file: getDiffActionsFromTables.ts ~ line 41 ~ df',
+            df
+          )
+
           // new table created
           if (df.path.length === 1) {
             const depends: string[] = []
-            const tableName = df.rhs.tableName as string
+            const { tableName } = rhs
 
-            Object.values(df.rhs.schema).forEach((v: any) => {
-              if (v.references) depends.push(v.references.model as string)
+            Object.values(rhs.schema).forEach(v => {
+              if (
+                v.references &&
+                typeof v.references !== 'string' &&
+                typeof v.references.model === 'string'
+              )
+                depends.push(v.references.model)
             })
 
             actions.push({
               actionType: 'createTable',
               tableName,
-              attributes: df.rhs.schema,
+              attributes: rhs.schema,
               options: {},
               depends
             })
 
             // create indexes
-            if (df.rhs.indexes)
-              for (const i in df.rhs.indexes) {
-                const copied = JSON.parse(JSON.stringify(df.rhs.indexes[i]))
+            if (rhs.indexes)
+              for (const i in rhs.indexes) {
+                const copied = JSON.parse(JSON.stringify(rhs.indexes[i]))
 
                 actions.push(
                   Object.assign(
@@ -82,15 +91,14 @@ export default function getDiffActionsFromTables(
           if (df.path[1] === 'schema') {
             // if (df.path.length === 3) - new field
             if (df.path.length === 3) {
-              // new field
-              if (df.rhs && df.rhs.references)
-                depends.push(df.rhs.references.model)
+              // new field - this should never happen
+              // if (rhs && rhs.references) depends.push(rhs.references.model)
 
               actions.push({
                 actionType: 'addColumn',
                 tableName,
                 attributeName: df.path[2],
-                options: df.rhs,
+                options: rhs,
                 depends
               })
               break
@@ -102,7 +110,7 @@ export default function getDiffActionsFromTables(
                 // new field attributes
                 const options = currentStateTables[tableName].schema[df.path[2]]
 
-                if (options.references) depends.push(options.references.nodel)
+                if (options.references) depends.push(options.references.model)
 
                 actions.push({
                   actionType: 'changeColumn',
@@ -116,11 +124,9 @@ export default function getDiffActionsFromTables(
           }
 
           // new index
-          if (df.path[1] === 'indexes' && df.rhs) {
+          if (df.path[1] === 'indexes' && rhs) {
             const tableName = df.path[0]
-            const copied = df.rhs
-              ? JSON.parse(JSON.stringify(df.rhs))
-              : undefined
+            const copied = rhs ? JSON.parse(JSON.stringify(rhs)) : undefined
             const index = copied
 
             index.actionType = 'addIndex'
@@ -205,7 +211,7 @@ export default function getDiffActionsFromTables(
           if (df.path[1] === 'schema') {
             // new field attributes
             const options = currentStateTables[tableName].schema[df.path[2]]
-            if (options.references) depends.push(options.references.nodel)
+            if (options.references) depends.push(options.references.model)
 
             actions.push({
               actionType: 'changeColumn',

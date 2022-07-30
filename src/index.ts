@@ -1,9 +1,9 @@
 import { Sequelize } from 'sequelize-typescript'
+import { Model, ModelCtor } from 'sequelize'
 import beautify from 'js-beautify'
 import { existsSync } from 'fs'
-import { MigrationState } from './constants'
-import { Model, ModelCtor } from 'sequelize/types'
 
+import { MigrationState } from './utils/constants'
 import getTablesFromModels from './utils/getTablesFromModels'
 import getDiffActionsFromTables from './utils/getDiffActionsFromTables'
 import getMigration from './utils/getMigration'

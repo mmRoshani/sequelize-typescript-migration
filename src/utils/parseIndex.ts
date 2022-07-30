@@ -1,4 +1,4 @@
-import { IndexesOptions } from 'sequelize/types'
+import { IndexesOptions } from 'sequelize'
 import * as crypto from 'crypto'
 
 export default function parseIndex(idx: IndexesOptions) {

@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions, no-use-before-define */
 import {
   Table,
   Model,
@@ -6,10 +5,11 @@ import {
   ForeignKey,
   BelongsTo
 } from 'sequelize-typescript'
-import { CarBrand } from './car_brand.model'
+
+import { CarBrand } from './carBrand'
 
 @Table
-export class Car extends Model<Car> {
+export class Car extends Model {
   @Column
   name!: string
 
