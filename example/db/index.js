@@ -4,19 +4,10 @@ const fs = require('fs')
 const path = require('path')
 const Sequelize = require('sequelize')
 const basename = path.basename(__filename)
-const config = require('../config.json')
+const config = require('./config')
 const db = {}
 
-const sequelize = new Sequelize({
-  username: config.development.username,
-  password: config.development.password,
-  database: config.development.database,
-  host: config.development.host,
-  dialect: config.development.dialect,
-  port: process.env.DATABASE_PORT,
-  timezone: process.env.DATABASE_TIMEZONE,
-  protocol: 'tcp'
-})
+const sequelize = new Sequelize(config.development.url)
 
 fs.readdirSync(__dirname)
   .filter(file => {

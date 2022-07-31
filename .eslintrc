@@ -28,7 +28,7 @@
       2,
       {
         "ts": "never",
-        "js": "always",
+        "js": "never",
         "json": "always"
       }
     ],

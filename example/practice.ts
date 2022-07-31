@@ -4,7 +4,7 @@ import { join } from 'path'
 import dotenv from 'dotenv'
 
 import { SequelizeTypescriptMigration } from '../src'
-import * as models from './models'
+import * as models from './db/models'
 
 dotenv.config()
 

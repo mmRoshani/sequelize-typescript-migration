@@ -33,8 +33,6 @@ export default function getDiffActionsFromTables(
   differences.forEach(df => {
     if (!df.path) throw new Error('Missing path')
 
-    console.log('🚀 ~ file: getDiffActionsFromTables.ts ~ line 33 ~ df', df)
-
     switch (df.kind) {
       // add new
       case 'N':
@@ -124,6 +122,7 @@ export default function getDiffActionsFromTables(
                   options,
                   depends
                 })
+
                 break
               }
           }
@@ -142,11 +141,13 @@ export default function getDiffActionsFromTables(
             break
           }
         }
+
         break
 
       // drop
       case 'D':
         {
+          // This types are not correct in case a column is deleted, but in fact it does not matter
           const lhs = df.lhs as unknown as Table & {
             fields: any
             options: any
@@ -211,11 +212,12 @@ export default function getDiffActionsFromTables(
                 options,
                 depends
               })
+
               break
             }
           }
 
-          if (paths[1] === 'indexes' && df.lhs) {
+          if (paths[1] === 'indexes' && lhs) {
             actions.push({
               actionType: 'removeIndex',
               tableName,
@@ -223,9 +225,11 @@ export default function getDiffActionsFromTables(
               options: lhs.options,
               depends: [tableName]
             })
+
             break
           }
         }
+
         break
 
       // edit
@@ -255,6 +259,7 @@ export default function getDiffActionsFromTables(
             })
           }
         }
+
         break
 
       // array change indexes
@@ -264,6 +269,7 @@ export default function getDiffActionsFromTables(
         )
         console.log('[Not supported] Difference: ')
         console.log(JSON.stringify(df, null, 4))
+
         break
 
       default:

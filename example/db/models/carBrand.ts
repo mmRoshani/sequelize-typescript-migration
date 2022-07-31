@@ -1,6 +1,9 @@
 import { Table, Model, Column, Default, DataType } from 'sequelize-typescript'
 
-@Table
+@Table({
+  paranoid: true,
+  tableName: 'car_brands'
+})
 export class CarBrand extends Model {
   @Column
   name!: string
@@ -11,9 +14,6 @@ export class CarBrand extends Model {
 
   @Column
   imgUrl!: string
-
-  @Column
-  orderNo!: number
 
   @Column
   carsCount!: number
