@@ -1,6 +1,6 @@
 import { diff } from 'deep-diff'
 
-import { Table, Tables } from './constants'
+import { Table, Tables, TableSchema } from './constants'
 import sortActions from './sortActions'
 
 export interface IAction {
@@ -13,10 +13,10 @@ export interface IAction {
     | 'removeIndex'
     | 'changeColumn'
   tableName: string
-  attributes?: any
-  attributeName?: any
+  attributes?: TableSchema
+  attributeName?: string
   options?: any
-  columnName?: any
+  columnName?: string
   fields?: any[]
   depends: string[]
 }
@@ -33,18 +33,17 @@ export default function getDiffActionsFromTables(
   differences.forEach(df => {
     if (!df.path) throw new Error('Missing path')
 
+    console.log('🚀 ~ file: getDiffActionsFromTables.ts ~ line 33 ~ df', df)
+
     switch (df.kind) {
       // add new
       case 'N':
         {
           const rhs = df.rhs as unknown as Table
-          console.log(
-            '🚀 ~ file: getDiffActionsFromTables.ts ~ line 41 ~ df',
-            df
-          )
+          const paths = df.path as string[]
 
           // new table created
-          if (df.path.length === 1) {
+          if (paths.length === 1) {
             const depends: string[] = []
             const { tableName } = rhs
 
@@ -85,32 +84,38 @@ export default function getDiffActionsFromTables(
             break
           }
 
-          const tableName = df.path[0]
+          const tableName = paths[0]
           const depends = [tableName]
 
-          if (df.path[1] === 'schema') {
-            // if (df.path.length === 3) - new field
-            if (df.path.length === 3) {
-              // new field - this should never happen
+          if (paths[1] === 'schema') {
+            // new field
+            if (paths.length === 3) {
+              // this should never happen
               // if (rhs && rhs.references) depends.push(rhs.references.model)
 
               actions.push({
                 actionType: 'addColumn',
                 tableName,
-                attributeName: df.path[2],
+                attributeName: paths[2],
                 options: rhs,
                 depends
               })
+
               break
             }
 
-            // if (df.path.length > 3) - add new attribute to column (change col)
-            if (df.path.length > 3)
-              if (df.path[1] === 'schema') {
+            //  add new attribute to column (change col)
+            if (paths.length > 3)
+              if (paths[1] === 'schema') {
                 // new field attributes
-                const options = currentStateTables[tableName].schema[df.path[2]]
+                const options = currentStateTables[tableName].schema[paths[2]]
 
-                if (options.references) depends.push(options.references.model)
+                if (
+                  options.references &&
+                  typeof options.references !== 'string' &&
+                  typeof options.references.model === 'string'
+                )
+                  depends.push(options.references.model)
 
                 actions.push({
                   actionType: 'changeColumn',
@@ -124,8 +129,8 @@ export default function getDiffActionsFromTables(
           }
 
           // new index
-          if (df.path[1] === 'indexes' && rhs) {
-            const tableName = df.path[0]
+          if (paths[1] === 'indexes' && rhs) {
+            const tableName = paths[0]
             const copied = rhs ? JSON.parse(JSON.stringify(rhs)) : undefined
             const index = copied
 
@@ -133,6 +138,7 @@ export default function getDiffActionsFromTables(
             index.tableName = tableName
             index.depends = [tableName]
             actions.push(index)
+
             break
           }
         }
@@ -141,13 +147,25 @@ export default function getDiffActionsFromTables(
       // drop
       case 'D':
         {
-          const tableName = df.path[0]
+          const lhs = df.lhs as unknown as Table & {
+            fields: any
+            options: any
+          }
+          const paths = df.path as string[]
+          const tableName = paths[0]
 
-          if (df.path.length === 1) {
+          if (paths.length === 1) {
             // drop table
             const depends: string[] = []
-            Object.values(df.lhs.schema).forEach((v: any) => {
-              if (v.references) depends.push(v.references.model)
+
+            Object.values(lhs.schema).forEach(v => {
+              if (
+                typeof v !== 'string' &&
+                v.references &&
+                typeof v.references !== 'string' &&
+                typeof v.references.model === 'string'
+              )
+                depends.push(v.references.model)
             })
 
             actions.push({
@@ -155,33 +173,41 @@ export default function getDiffActionsFromTables(
               tableName,
               depends
             })
+
             break
           }
 
-          if (df.path[1] === 'schema') {
-            // if (df.path.length === 3) - drop field
-            if (df.path.length === 3) {
+          if (paths[1] === 'schema') {
+            // drop field
+            if (paths.length === 3) {
               // drop column
               actions.push({
                 actionType: 'removeColumn',
                 tableName,
-                columnName: df.path[2],
+                columnName: paths[2],
                 depends: [tableName]
               })
+
               break
             }
 
-            // if (df.path.length > 3) - drop attribute from column (change col)
-            if (df.path.length > 3) {
+            // drop attribute from column (change col)
+            if (paths.length > 3) {
               const depends = [tableName]
               // new field attributes
-              const options = currentStateTables[tableName].schema[df.path[2]]
-              if (options.references) depends.push(options.references.model)
+              const options = currentStateTables[tableName].schema[paths[2]]
+
+              if (
+                options.references &&
+                typeof options.references !== 'string' &&
+                typeof options.references.model === 'string'
+              )
+                depends.push(options.references.model)
 
               actions.push({
                 actionType: 'changeColumn',
                 tableName,
-                attributeName: df.path[2],
+                attributeName: paths[2],
                 options,
                 depends
               })
@@ -189,12 +215,12 @@ export default function getDiffActionsFromTables(
             }
           }
 
-          if (df.path[1] === 'indexes' && df.lhs) {
+          if (paths[1] === 'indexes' && df.lhs) {
             actions.push({
               actionType: 'removeIndex',
               tableName,
-              fields: df.lhs.fields,
-              options: df.lhs.options,
+              fields: lhs.fields,
+              options: lhs.options,
               depends: [tableName]
             })
             break
@@ -205,18 +231,25 @@ export default function getDiffActionsFromTables(
       // edit
       case 'E':
         {
-          const tableName = df.path[0]
+          const paths = df.path as string[]
+          const tableName = paths[0]
           const depends = [tableName]
 
-          if (df.path[1] === 'schema') {
+          if (paths[1] === 'schema') {
             // new field attributes
-            const options = currentStateTables[tableName].schema[df.path[2]]
-            if (options.references) depends.push(options.references.model)
+            const options = currentStateTables[tableName].schema[paths[2]]
+
+            if (
+              options.references &&
+              typeof options.references !== 'string' &&
+              typeof options.references.model === 'string'
+            )
+              depends.push(options.references.model)
 
             actions.push({
               actionType: 'changeColumn',
               tableName,
-              attributeName: df.path[2],
+              attributeName: paths[2],
               options,
               depends
             })
