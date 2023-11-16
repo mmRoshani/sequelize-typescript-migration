@@ -8,6 +8,10 @@ import type {
 } from "../constants";
 
 export default async function getLastMigrationState(sequelize: Sequelize) {
+  if (sequelize.getDialect() == 'mysql') {
+    await sequelize.query('SET SESSION SQL_MODE=ANSI_QUOTES;', { type: QueryTypes.RAW });
+  }
+
   const [lastExecutedMigration] = await sequelize.query<SequelizeMigrations>(
     'SELECT name FROM "SequelizeMeta" ORDER BY name desc limit 1',
     { type: QueryTypes.SELECT }
