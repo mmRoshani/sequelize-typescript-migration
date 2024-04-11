@@ -1,6 +1,6 @@
 {
-  "name": "sequelize-typescript-migration-lts",
-  "version": "3.2.5",
+  "name": "sequelize-typescript-migration-ht",
+  "version": "1.0.0",
   "description": "migration tool for sequelize & typescript users",
   "keywords": [
     "sequelize",
@@ -13,11 +13,7 @@
     "detect",
     "changes"
   ],
-  "homepage": "https://github.com/mmRoshani/sequelize-typescript-migration",
-  "bugs": {
-    "url": "https://github.com/mmRoshani/sequelize-typescript-migration/issues",
-    "email": "mohammadmojtabaroshani@outlook.com"
-  },
+  "homepage": "https://github.com/alin1124/sequelize-typescript-migration",
   "main": "dist/index.js",
   "scripts": {
     "release": "npm publish --access public",
@@ -32,9 +28,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mmRoshani/sequelize-typescript-migration.git"
+    "url": "https://github.com/alin1124/sequelize-typescript-migration.git"
   },
-  "author": "mohammadmojtabaroshani@outlook.com",
   "license": "MIT",
   "dependencies": {
     "deep-diff": "^1.0.2",
