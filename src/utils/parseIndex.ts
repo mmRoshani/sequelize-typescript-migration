@@ -19,7 +19,7 @@ export default function parseIndex(idx: IndexesOptions) {
 
   const options: { [x: string]: unknown } = {};
 
-  if (idx.name) options.indexName = idx.name;
+  if (idx.name) options.name = idx.name;
   // The name of the index. Default is __
 
   // @todo: UNIQUE|FULLTEXT|SPATIAL

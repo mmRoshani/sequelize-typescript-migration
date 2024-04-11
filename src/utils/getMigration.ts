@@ -1,3 +1,5 @@
+import { snakeCase } from "./snakeCase";
+
 export default function getMigration(actions) {
   const commandsUp: string[] = [];
   const commandsDown: string[] = [];
@@ -75,6 +77,9 @@ ${JSON.stringify(action.options)}
 
       case "addIndex":
         {
+          if (!action.options.name.startsWith(snakeCase(action.tableName))) {
+            action.options.name = `${snakeCase(action.tableName)}_${action.options.name}`;
+          }
           const res = `{ fn: "addIndex", params: [
     "${action.tableName}",
     ${JSON.stringify(action.fields)},
@@ -84,9 +89,9 @@ ${JSON.stringify(action.options)}
 
           const nameOrAttrs =
             action.options &&
-            action.options.indexName &&
-            action.options.indexName !== ""
-              ? `"${action.options.indexName}"`
+            action.options.name &&
+            action.options.name !== ""
+              ? `"${action.options.name}"`
               : JSON.stringify(action.fields);
 
           consoleOut.push(
@@ -96,11 +101,14 @@ ${JSON.stringify(action.options)}
         break;
 
       case "removeIndex": {
+        if (!action.options.name.startsWith(snakeCase(action.tableName))) {
+          action.options.name = `${snakeCase(action.tableName)}_${action.options.name}`;
+        }
         const nameOrAttrs =
           action.options &&
-          action.options.indexName &&
-          action.options.indexName !== ""
-            ? `"${action.options.indexName}"`
+          action.options.name &&
+          action.options.name !== ""
+            ? `"${action.options.name}"`
             : JSON.stringify(action.fields);
         const res = `{ fn: "removeIndex", params: [
           "${action.tableName}",
