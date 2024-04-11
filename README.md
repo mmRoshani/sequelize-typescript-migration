@@ -1,8 +1,8 @@
-# sequelize-typescript-migration-lts
+# sequelize-typescript-migration-ht
 
 #### Idea: founded the best changes at each 27th fork from the main repository and merge them together.
 
-- Use it from [here](https://www.npmjs.com/package/sequelize-typescript-migration-lts) by the name of `sequelize-typescript-migration-lts`
+- Use it from [here](https://www.npmjs.com/package/sequelize-typescript-migration-ht) by the name of `sequelize-typescript-migration-ht`
 
 - Here is the [Github discussion](https://github.com/mmRoshani/sequelize-typescript-migration/discussions), any ideas/improves are very welcome.
 
@@ -16,9 +16,9 @@
 #### Installation
 
 ```js
-npm i sequelize-typescript-migration-lts
+npm i sequelize-typescript-migration-ht
 // Or
-yarn add sequelize-typescript-migration-lts
+yarn add sequelize-typescript-migration-ht
 ```
 
 Thanks kimjbstar, mricharz, syon-development, viinzzz and lou2013 for the awesome lib.
@@ -50,7 +50,7 @@ That issue is currently in the works.
 ```typescript
 import { join } from 'path'
 import { Sequelize } from "sequelize-typescript";
-import { SequelizeTypescriptMigration } from "sequelize-typescript-migration-lts";
+import { SequelizeTypescriptMigration } from "sequelize-typescript-migration-ht";
 
 const sequelize: Sequelize = new Sequelize({
   // .. options
